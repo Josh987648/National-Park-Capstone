@@ -42,5 +42,33 @@ namespace Capstone.DAL
             }
             return false;
         }
+
+
+        public bool BookReservation(string name, int site_id, string from_date, string to_date)
+        {
+
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+
+                    SqlCommand cmd = new SqlCommand("INSERT INTO reservation(site_id, name, from_date, to_date) Values(@site_id, @name, @from_date, @to_date );", connection);
+                    cmd.Parameters.AddWithValue("@site_id", site_id);
+                    cmd.Parameters.AddWithValue("@name", name);
+                    cmd.Parameters.AddWithValue("@from_date", from_date);
+                    cmd.Parameters.AddWithValue("@to_date", to_date);
+                    int rowsAffected = cmd.ExecuteNonQuery();
+                    return (rowsAffected > 0);
+                }
+
+            }
+            catch (SqlException ex)
+            {
+                Console.WriteLine("Error in the database" + ex.Message);
+                throw;
+            }
+
+        }
     }
 }
