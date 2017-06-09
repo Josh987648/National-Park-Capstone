@@ -57,5 +57,38 @@ namespace Capstone.DAL
 
             return campground;
         }
+
+        public Campground GetCampgroundById(int campgroundId)
+        {
+            Campground campground = new Campground();
+
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+
+                    SqlCommand cmd = new SqlCommand("Select * From Campground Where campground_id = @campground_id;", connection);
+                    cmd.Parameters.AddWithValue("@campground_id", campgroundId);
+
+                    SqlDataReader reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        campground.CampgroundId = Convert.ToInt32(reader["campground_id"]);
+                        campground.ParkId = Convert.ToInt32(reader["park_id"]);
+                        campground.Name = Convert.ToString(reader["name"]);
+                        campground.OpenFrom = Convert.ToInt32(reader["open_from_mm"]);
+                        campground.OpenTo = Convert.ToInt32(reader["open_to_mm"]);
+                        campground.DailyFee = Convert.ToDecimal(reader["daily_fee"]);
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                Console.WriteLine("Error in the database" + ex.Message);
+                throw;
+            }
+            return campground;
+        }
     }
 }
