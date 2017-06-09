@@ -14,11 +14,5 @@ namespace Capstone.Models
         public int OpenFrom { get; set; }
         public int OpenTo { get; set; }
         public decimal DailyFee { get; set; }
-
-
-        public override string ToString()
-        {
-            return CampgroundId.ToString().PadRight(5) + ParkId.ToString().PadRight(20) + Name.ToString().PadRight(10) + OpenFrom.ToString().PadRight(10) + OpenTo.ToString().PadRight(10) + DailyFee.ToString().PadRight(10);
-        }
     }
 }
