@@ -19,8 +19,23 @@ namespace Capstone
         const string Command_PreviousMenu = "2";
         int userChoiceCampground;
 
+        string from_date;
+        string to_date;
+
+        private ParkSqlDAL parkDAL;
+        private CampgroundSqlDAL campDAL;
+        private ReservationSqlDAL reservationDAL;
+        private SiteSqlDAL siteDAL;
+
         readonly string DatabaseConnection = ConfigurationManager.ConnectionStrings["ParkDatabaseConnection"].ConnectionString;
 
+        public ParkCLI()
+        {
+            parkDAL = new ParkSqlDAL(DatabaseConnection);
+            campDAL = new CampgroundSqlDAL(DatabaseConnection);
+            reservationDAL = new ReservationSqlDAL(DatabaseConnection);
+            siteDAL = new SiteSqlDAL(DatabaseConnection);
+        }
 
         private void PrintMainMenu()
         {
@@ -31,13 +46,13 @@ namespace Capstone
             Console.WriteLine();
         }
 
-
         public void RunCLI()
         {
             Console.WriteLine("*********************************************************************");
             Console.WriteLine("           WELCOME TO THE NATIONAL PARK RESERVATION SYSTHEM          ");
             Console.WriteLine("*********************************************************************");
             Console.WriteLine();
+
             bool condition = true;
             while (condition)
             {
@@ -73,7 +88,6 @@ namespace Capstone
 
         private void ViewParks()
         {
-            ParkSqlDAL parkDAL = new ParkSqlDAL(DatabaseConnection);
             List<Park> parks = parkDAL.GetAllParks();
 
             if (parks.Count > 0)
@@ -89,8 +103,10 @@ namespace Capstone
                     Console.WriteLine("Annual Visitors: " + park.Visitors.ToString("#,##0"));
                     Console.WriteLine();
                     Console.WriteLine(park.Description.ToString());
+
                 }
                 Console.WriteLine();
+
             }
             else
             {
@@ -102,108 +118,114 @@ namespace Capstone
         private void ViewCampgrounds()
         {
             List<int> campgroundIds = new List<int>();
-            Console.WriteLine("Please select from the following Parks to view Campgrounds: ");
-            GetAllParkNames();
-            Console.WriteLine();
-            int parkId = int.Parse(Console.ReadLine());
 
-            CampgroundSqlDAL campDAL = new CampgroundSqlDAL(DatabaseConnection);
-            List<Campground> campgrounds = campDAL.GetAllCampgrounds(parkId);
-            Console.WriteLine();
-            Console.WriteLine("Park Campgrounds: ");
-            Console.WriteLine("*****************************");
-            ParkSqlDAL parkDAL = new ParkSqlDAL(DatabaseConnection);
-            Console.WriteLine(parkDAL.GetParkNameByParkId(parkId) + " National Park:");
-            Console.WriteLine("*****************************");
-            Console.WriteLine();
-            Console.WriteLine("".PadRight(10) + "Name".ToString().PadRight(35) + "Open".ToString().PadRight(25) + "Close".ToString().PadRight(25) + "Daily Fee");
-            Console.WriteLine();
-
-            foreach (Campground campground in campgrounds)
-            {
-                string openMonth = CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(campground.OpenFrom);
-                string closeMonth = CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(campground.OpenTo);
-                Console.WriteLine("#" + campground.CampgroundId.ToString().PadRight(5) + campground.Name.ToString().PadRight(40) + openMonth.ToString().PadRight(25) + closeMonth.ToString().PadRight(25) + "$" + Math.Round(campground.DailyFee, 2));
-                campgroundIds.Add(campground.CampgroundId);
-            }
-            Console.WriteLine();
             while (true)
             {
-                Console.WriteLine("Please select from the above Campgrounds: ");
-                userChoiceCampground = int.Parse(Console.ReadLine());
-                if (campgroundIds.Contains(userChoiceCampground))
+                Console.WriteLine("Please select from the following Parks to view Campgrounds: ");
+                GetAllParkNames();
+                Console.WriteLine();
+                int parkId = int.Parse(Console.ReadLine());
+                Console.WriteLine();
+
+                List<int> allParkIds = getAllParkIds();
+                if (allParkIds.Contains(parkId))
                 {
-                    Campground campgroundChoice = campDAL.GetCampgroundById(userChoiceCampground);
-                    string userChoiceOpenMonth = CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(campgroundChoice.OpenFrom);
-                    string userChoiceCloseMonth = CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(campgroundChoice.OpenTo);
-                    Console.WriteLine(campgroundChoice.CampgroundId.ToString().PadRight(5) + campgroundChoice.Name.ToString().PadRight(40) + userChoiceOpenMonth.ToString().PadRight(25) + userChoiceCloseMonth.ToString().PadRight(25) + "$" + Math.Round(campgroundChoice.DailyFee, 2));
+                    Console.WriteLine("Park Campgrounds: ");
+                    Console.WriteLine("*****************************");
 
-                    break;
+                    Console.WriteLine(parkDAL.GetParkNameByParkId(parkId) + " National Park:");
+                    Console.WriteLine("*****************************");
+                    Console.WriteLine();
+                    Console.WriteLine("".PadRight(10) + "Name".ToString().PadRight(35) + "Open".ToString().PadRight(25) + "Close".ToString().PadRight(25) + "Daily Fee");
+                    Console.WriteLine();
+
+                    List<Campground> campgrounds = campDAL.GetAllCampgrounds(parkId);
+                    foreach (Campground campground in campgrounds)
+                    {
+                        printCampground(campground);
+                        campgroundIds.Add(campground.CampgroundId);
+                    }
+                    Console.WriteLine();
+                    bool condition = true;
+                    while (condition)
+                    {
+                        Console.WriteLine("Please select from the above Campgrounds: ");
+                        userChoiceCampground = int.Parse(Console.ReadLine());
+                        if (campgroundIds.Contains(userChoiceCampground))
+                        {
+
+                            Campground chosenCampground = campDAL.GetCampgroundById(userChoiceCampground);
+                            printCampground(chosenCampground);
+                            condition = false;
+                        }
+                    }
+
+                    Console.WriteLine();
+
+                    SearchReservation();
+                    return;
                 }
+
             }
-            Console.WriteLine();
-            PrintSubMenu();
-
         }
-
-        string from_date = "";
-        string to_date = "";
 
         private void SearchReservation()
         {
-            ReservationSqlDAL reservationDAL = new ReservationSqlDAL(DatabaseConnection);
-            while (true)
+            bool condition = true;
+            while (condition)
             {
-                Console.WriteLine("Please enter the arrival date: ");
-                string arrivalDate = Console.ReadLine();
-                Console.WriteLine("Please enter the departure date: ");
-                string departureDate = Console.ReadLine();
+                PrintSubMenu();
+                string usersResponseToSubMenu = Console.ReadLine();
 
-                if(SiteIsUnavailable())
+                if (usersResponseToSubMenu == Command_SearchReservation)
                 {
-                    Console.WriteLine("Sorry reservation is not available for that date. Please try a new date.");
-                }
-                //if (reservationDAL.isReserved(arrivalDate, departureDate))
-                //{
-                    GetAllAvailableSites(reservationDAL, arrivalDate, departureDate);
 
-                  //  Console.WriteLine("Sorry that reservation is not available. Please try a new date.");
-               // }
-                else
-                {
-                    Console.WriteLine("Results matching your search criteria: ");
-                    GetAllAvailableSites(reservationDAL, arrivalDate, departureDate);
+                    Console.WriteLine("Please enter the arrival date:(YYYY-MM-DD) ");
+                    string arrivalDate = Console.ReadLine();
+                  
 
-                    SiteSqlDAL siteDAL = new SiteSqlDAL(DatabaseConnection);
-                    break;
+                    Console.WriteLine("Please enter the departure date: (YYYY-MM-DD)");
+                    string departureDate = Console.ReadLine();
                    
+                    if (!isReserved(arrivalDate, departureDate))
+                    {
+                        GetAllAvailableSites(arrivalDate, departureDate);
+                        BookReservation();
+                        condition = false;
+                    }
+
+                    else
+                    {
+                        Console.WriteLine("Sorry no site is available for that date. Please choose another date.");
+                    }
+
+                }
+
+                else if (usersResponseToSubMenu == Command_PreviousMenu)
+                {
+                    return;
                 }
             }
-              
-                Console.WriteLine("Which site would you like to reserve ?");
-                int userChoiceSite = int.Parse(Console.ReadLine());
-
-                Console.WriteLine("What name should the reservation be made under?");
-                string reservationName = Console.ReadLine();
-                reservationDAL.BookReservation(reservationName, userChoiceSite, from_date, to_date);
-                Console.WriteLine("The reservation hae been made and the confirmation id is ");
         }
 
 
+        private void BookReservation()
+        {
+            Console.WriteLine("Which site would you like to reserve ?(enter 0 to cancel)");
+            int userChoiceSite = int.Parse(Console.ReadLine());
+            if (userChoiceSite == 0)
+            {
+                return;
+            }
 
-        //private void BookReservation(ReservationSqlDAL reservation)
-        //{
-        //    Console.WriteLine("Which site would you like to reserve ?");
-        //    int userChoiceSite = int.Parse(Console.ReadLine());
-
-        //    Console.WriteLine("What name should the reservation be made under?");
-        //    string reservationName = Console.ReadLine();
-        //    reservation.BookReservation(reservationName, userChoiceSite, from_date, to_date);
-        //}
+            Console.WriteLine("What name should the reservation be made under?");
+            string reservationName = Console.ReadLine();
+            reservationDAL.BookReservation(reservationName, userChoiceSite, from_date, to_date);
+        }
 
         private void GetAllParkNames()
         {
-            ParkSqlDAL parkDAL = new ParkSqlDAL(DatabaseConnection);
+
             List<Park> parks = parkDAL.GetAllParks();
 
             foreach (Park park in parks)
@@ -217,34 +239,55 @@ namespace Capstone
             Console.WriteLine("Menu Please type in a command");
             Console.WriteLine("1 - Search for available Reservation");
             Console.WriteLine("2 - Return to previous screen");
-            string usersResponseToSubMenu = Console.ReadLine();
+        }
 
-            if (usersResponseToSubMenu == Command_SearchReservation)
+        public void GetAllAvailableSites(string arrivalDate, string departureDate)
+        {
+            List<Site> sites = siteDAL.GetSiteFromCampgroundId(userChoiceCampground, arrivalDate, departureDate);
+            Console.WriteLine();
+            Console.WriteLine("Site No.".ToString().PadRight(25) + "Max Occup.".ToString().PadRight(25) + "Accessible".ToString().PadRight(25) + "Max RV Length".ToString().PadRight(27) + "Utilities");
+            Console.WriteLine();
+            from_date = arrivalDate;
+            to_date = departureDate;
+
+            foreach (Site site in sites)
             {
-                SearchReservation();
-
-
-            }
-            else if (usersResponseToSubMenu == Command_PreviousMenu)
-            {
-                return;
+                Console.WriteLine("#" + site.SiteNumber.ToString().PadRight(27) + site.MaxOccupancy.ToString().PadRight(25) + site.Accessible.ToString().PadRight(27) + site.MaxRVLength.ToString().PadRight(25) + site.Utilities);
             }
         }
 
-        public void GetAllAvailableSites(ReservationSqlDAL reservationDAL, string arrivalDate, string departureDate)
+        public bool isReserved(string arrivalDate, string departureDate)
         {
-                SiteSqlDAL siteDAL = new SiteSqlDAL(DatabaseConnection);
-                List<Site> sites = siteDAL.GetSiteFromCampgroundId(userChoiceCampground, arrivalDate, departureDate);
-                Console.WriteLine();
-                Console.WriteLine("Site No.".ToString().PadRight(25) + "Max Occup.".ToString().PadRight(25) + "Accessible".ToString().PadRight(25) + "Max RV Length".ToString().PadRight(27) + "Utilities");
-                Console.WriteLine();
-                from_date = arrivalDate;
-                to_date = departureDate;
-
-                foreach (Site site in sites)
-                {
-                    Console.WriteLine("#" + site.SiteNumber.ToString().PadRight(27) + site.MaxOccupancy.ToString().PadRight(25) + site.Accessible.ToString().PadRight(27) + site.MaxRVLength.ToString().PadRight(25) + site.Utilities);
-                }
+            List<Site> sites = siteDAL.GetSiteFromCampgroundId(userChoiceCampground, arrivalDate, departureDate);
+            if (sites.Count > 0)
+            {
+                return false;
             }
+            else
+            {
+                return true;
+            }
+
+        }
+
+        public void printCampground(Campground campground)
+        {
+            string userChoiceOpenMonth = CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(campground.OpenFrom);
+            string userChoiceCloseMonth = CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(campground.OpenTo);
+            Console.WriteLine(campground.CampgroundId.ToString().PadRight(5) + campground.Name.ToString().PadRight(40) + userChoiceOpenMonth.ToString().PadRight(25) + userChoiceCloseMonth.ToString().PadRight(25) + "$" + Math.Round(campground.DailyFee, 2));
+
+        }
+
+        public List<int> getAllParkIds()
+        {
+            List<Park> park = parkDAL.GetAllParks();
+            List<int> parkIds = new List<int>();
+            for (int i = 0; i < park.Count; i++)
+            {
+                parkIds.Add(park[i].ParkId);
+            }
+            return parkIds;
+        }
+
     }
 }
