@@ -41,5 +41,33 @@ namespace Capstone.DAL
             }
 
         }
+
+        public int GetReservationId(string reservationName)
+        {
+            int reservationId = 0;
+
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+
+                    SqlCommand cmd = new SqlCommand("Select reservation_id from reservation where name = @reservationName;", connection);
+                    cmd.Parameters.AddWithValue("@reservationName", reservationName);
+
+                    SqlDataReader reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        reservationId = Convert.ToInt32(reader["reservation_id"]);
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                Console.WriteLine("Error in the database" + ex.Message);
+                throw;
+            }
+            return reservationId;
+        }
     }
 }

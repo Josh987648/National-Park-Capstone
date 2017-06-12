@@ -56,6 +56,8 @@
   <ItemGroup>
     <Compile Include="DALTests\ParkSqlDALTests.cs" />
     <Compile Include="DALTests\CampgroundSqlDALTests.cs" />
+    <Compile Include="DALTests\ReservationSqlDALTests.cs" />
+    <Compile Include="DALTests\SiteSqlDALTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

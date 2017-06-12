@@ -27,8 +27,8 @@ namespace Capstone.DAL
                 {
                     connection.Open();
 
-                    SqlCommand cmd = new SqlCommand("Select * From Campground Where park_id = @park_id;", connection);
-                    cmd.Parameters.AddWithValue("@park_id", parkId);
+                    SqlCommand cmd = new SqlCommand("Select * From Campground Where park_id = @parkId;", connection);
+                    cmd.Parameters.AddWithValue("@parkId", parkId);
 
                     SqlDataReader reader = cmd.ExecuteReader();
                     while (reader.Read())
@@ -68,8 +68,8 @@ namespace Capstone.DAL
                 {
                     connection.Open();
 
-                    SqlCommand cmd = new SqlCommand("Select * From Campground Where campground_id = @campground_id;", connection);
-                    cmd.Parameters.AddWithValue("@campground_id", campgroundId);
+                    SqlCommand cmd = new SqlCommand("Select * From Campground Where campground_id = @campgroundId;", connection);
+                    cmd.Parameters.AddWithValue("@campgroundId", campgroundId);
 
                     SqlDataReader reader = cmd.ExecuteReader();
                     while (reader.Read())

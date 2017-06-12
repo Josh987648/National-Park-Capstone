@@ -17,7 +17,7 @@ namespace Capstone.DAL
             connectionString = parkConnectionString;
         }
 
-        public List<Site> GetSiteFromCampgroundId(int campgroundId, string arrival, string departure)
+        public List<Site> GetSiteFromCampgroundId(int campground_Id, string from_date, string to_date)
         {
             List<Site> result = new List<Site>();
 
@@ -27,10 +27,19 @@ namespace Capstone.DAL
                 {
                     connection.Open();
 
-                    SqlCommand cmd = new SqlCommand("SELECT * FROM site INNER JOIN campground on site.campground_id = campground.campground_id Where site_id not in (select reservation.site_id from reservation inner join site on reservation.site_id = site.site_id where @from_date < reservation.to_date and @to_date > reservation.from_date) and campground.campground_id = @campground_id;", connection);                 
-                    cmd.Parameters.AddWithValue("@campground_id", campgroundId);
-                    cmd.Parameters.AddWithValue("@from_date", arrival);
-                    cmd.Parameters.AddWithValue("@to_date", departure);
+                    SqlCommand cmd = new SqlCommand("SELECT Top 5 * " +
+                        "FROM site " +
+                        "INNER JOIN campground on site.campground_id = campground.campground_id " +
+                        "Where site_id NOT IN" +
+                        " (select reservation.site_id " +
+                        "FROM reservation " +
+                        "INNER JOIN site on reservation.site_id = site.site_id " +
+                        "WHERE @from_date < reservation.to_date and @to_date > reservation.from_date)" +
+                        " AND campground.campground_id = @campground_Id;", connection); 
+                    
+                    cmd.Parameters.AddWithValue("@campground_Id", campground_Id);
+                    cmd.Parameters.AddWithValue("@from_date", from_date);
+                    cmd.Parameters.AddWithValue("@to_date", to_date);
                     SqlDataReader reader = cmd.ExecuteReader();
                     while (reader.Read())
                     {

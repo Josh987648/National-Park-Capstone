@@ -65,8 +65,8 @@ namespace Capstone.DAL
             {
                 connection.Open();
 
-                SqlCommand cmd = new SqlCommand("Select name From Park Where park_id = @park_id;", connection);
-                cmd.Parameters.AddWithValue("@park_id", parkId);
+                SqlCommand cmd = new SqlCommand("Select name From Park Where park_id = @parkId;", connection);
+                cmd.Parameters.AddWithValue("@parkId", parkId);
                 SqlDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {

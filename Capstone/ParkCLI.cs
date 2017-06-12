@@ -85,7 +85,6 @@ namespace Capstone
             }
         }
 
-
         private void ViewParks()
         {
             List<Park> parks = parkDAL.GetAllParks();
@@ -114,7 +113,7 @@ namespace Capstone
             }
         }
 
-
+        Campground chosenCampground;
         private void ViewCampgrounds()
         {
             List<int> campgroundIds = new List<int>();
@@ -154,22 +153,21 @@ namespace Capstone
                         if (campgroundIds.Contains(userChoiceCampground))
                         {
 
-                            Campground chosenCampground = campDAL.GetCampgroundById(userChoiceCampground);
+                            chosenCampground = campDAL.GetCampgroundById(userChoiceCampground);
                             printCampground(chosenCampground);
                             condition = false;
                         }
                     }
 
                     Console.WriteLine();
-
-                    SearchReservation();
+                    SearchReservation(chosenCampground);
                     return;
                 }
 
             }
         }
 
-        private void SearchReservation()
+        private void SearchReservation(Campground chosenCampground)
         {
             bool condition = true;
             while (condition)
@@ -182,12 +180,12 @@ namespace Capstone
 
                     Console.WriteLine("Please enter the arrival date:(YYYY-MM-DD) ");
                     string arrivalDate = Console.ReadLine();
-                  
+
 
                     Console.WriteLine("Please enter the departure date: (YYYY-MM-DD)");
                     string departureDate = Console.ReadLine();
-                   
-                    if (!isReserved(arrivalDate, departureDate))
+
+                    if (!isReserved(arrivalDate, departureDate) && isDateValid(arrivalDate, departureDate, chosenCampground))
                     {
                         GetAllAvailableSites(arrivalDate, departureDate);
                         BookReservation();
@@ -221,6 +219,7 @@ namespace Capstone
             Console.WriteLine("What name should the reservation be made under?");
             string reservationName = Console.ReadLine();
             reservationDAL.BookReservation(reservationName, userChoiceSite, from_date, to_date);
+            Console.WriteLine("The reservation has been made and the confirmation id is " + reservationDAL.GetReservationId(reservationName));
         }
 
         private void GetAllParkNames()
@@ -275,7 +274,6 @@ namespace Capstone
             string userChoiceOpenMonth = CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(campground.OpenFrom);
             string userChoiceCloseMonth = CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(campground.OpenTo);
             Console.WriteLine(campground.CampgroundId.ToString().PadRight(5) + campground.Name.ToString().PadRight(40) + userChoiceOpenMonth.ToString().PadRight(25) + userChoiceCloseMonth.ToString().PadRight(25) + "$" + Math.Round(campground.DailyFee, 2));
-
         }
 
         public List<int> getAllParkIds()
@@ -288,6 +286,20 @@ namespace Capstone
             }
             return parkIds;
         }
+
+
+        public bool isDateValid(string arrivalDate, string departureDate, Campground campground)
+        {
+            DateTime arrival;
+            arrival = Convert.ToDateTime(arrivalDate);
+            if (arrival.Month >= campground.OpenFrom && arrival.Month <= campground.OpenTo)
+            {
+                return true;
+            }
+            return false;
+
+        }
+
 
     }
 }
