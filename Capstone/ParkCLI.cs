@@ -18,6 +18,7 @@ namespace Capstone
         const string Command_SearchReservation = "1";
         const string Command_PreviousMenu = "2";
         int userChoiceCampground;
+        List<int> allNonReservedSiteNumber = new List<int>();
 
         string from_date;
         string to_date;
@@ -187,7 +188,7 @@ namespace Capstone
 
                     if (!isReserved(arrivalDate, departureDate) && isDateValid(arrivalDate, departureDate, chosenCampground))
                     {
-                        GetAllAvailableSites(arrivalDate, departureDate);
+                        GetAllAvailableSites(arrivalDate, departureDate);                     
                         BookReservation();
                         condition = false;
                     }
@@ -209,17 +210,31 @@ namespace Capstone
 
         private void BookReservation()
         {
-            Console.WriteLine("Which site would you like to reserve ?(enter 0 to cancel)");
-            int userChoiceSite = int.Parse(Console.ReadLine());
-            if (userChoiceSite == 0)
+            bool siteIsValid = true;
+            
+            while (siteIsValid)
             {
-                return;
+                Console.WriteLine("Which site would you like to reserve ?(enter 0 to cancel)");
+                int userChoiceSite = int.Parse(Console.ReadLine());
+                if (userChoiceSite == 0)
+                {
+                    return;
+                }
+                else if (allNonReservedSiteNumber.Contains(userChoiceSite))
+                {
+                    Console.WriteLine("What name should the reservation be made under?");
+                    string reservationName = Console.ReadLine();
+                    reservationDAL.BookReservation(reservationName, userChoiceSite, from_date, to_date);
+                    Console.WriteLine("The reservation has been made and the confirmation id is " + reservationDAL.GetReservationId(reservationName));
+                    siteIsValid = false;
+                }
+                else
+                {
+                    Console.WriteLine("Invalid Site Number. Please choose from the available site numbers displayed.");
+                    Console.WriteLine();
+                }
             }
 
-            Console.WriteLine("What name should the reservation be made under?");
-            string reservationName = Console.ReadLine();
-            reservationDAL.BookReservation(reservationName, userChoiceSite, from_date, to_date);
-            Console.WriteLine("The reservation has been made and the confirmation id is " + reservationDAL.GetReservationId(reservationName));
         }
 
         private void GetAllParkNames()
@@ -242,16 +257,18 @@ namespace Capstone
 
         public void GetAllAvailableSites(string arrivalDate, string departureDate)
         {
-            List<Site> sites = siteDAL.GetSiteFromCampgroundId(userChoiceCampground, arrivalDate, departureDate);
+            List<Site> allNonReservedSites = siteDAL.GetSiteFromCampgroundId(userChoiceCampground, arrivalDate, departureDate);
             Console.WriteLine();
             Console.WriteLine("Site No.".ToString().PadRight(25) + "Max Occup.".ToString().PadRight(25) + "Accessible".ToString().PadRight(25) + "Max RV Length".ToString().PadRight(27) + "Utilities");
             Console.WriteLine();
             from_date = arrivalDate;
             to_date = departureDate;
 
-            foreach (Site site in sites)
+            foreach (Site site in allNonReservedSites)
             {
                 Console.WriteLine("#" + site.SiteNumber.ToString().PadRight(27) + site.MaxOccupancy.ToString().PadRight(25) + site.Accessible.ToString().PadRight(27) + site.MaxRVLength.ToString().PadRight(25) + site.Utilities);
+                allNonReservedSiteNumber.Add(site.SiteNumber);
+
             }
         }
 
