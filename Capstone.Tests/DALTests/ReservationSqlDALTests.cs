@@ -36,7 +36,7 @@ namespace Capstone.Tests.DALTests
 
             //Act
             bool result;
-            result = reservationDal.BookReservation("abc", 2, "2017-09-09", "2017-09-11");
+            result = reservationDal.BookReservation("abc", 2, DateTime.Parse("2017-09-09"), DateTime.Parse("2017-09-11"));
 
             //Assert
             Assert.AreEqual(true, result);

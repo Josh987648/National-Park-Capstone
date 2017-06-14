@@ -20,8 +20,8 @@ namespace Capstone
         int userChoiceCampground;
         List<int> allNonReservedSiteNumber = new List<int>();
 
-        string from_date;
-        string to_date;
+        DateTime from_date;
+        DateTime to_date;
 
         private ParkSqlDAL parkDAL;
         private CampgroundSqlDAL campDAL;
@@ -71,7 +71,6 @@ namespace Capstone
 
                     case Command_ViewCampgrounds:
                         ViewCampgrounds();
-
                         break;
 
 
@@ -122,12 +121,12 @@ namespace Capstone
             while (true)
             {
                 Console.WriteLine("Please select from the following Parks to view Campgrounds: ");
-                GetAllParkNames();
+                DisplayAllParkNames();
                 Console.WriteLine();
                 int parkId = int.Parse(Console.ReadLine());
                 Console.WriteLine();
 
-                List<int> allParkIds = getAllParkIds();
+                List<int> allParkIds = GetAllParkIDs();
                 if (allParkIds.Contains(parkId))
                 {
                     Console.WriteLine("Park Campgrounds: ");
@@ -142,7 +141,7 @@ namespace Capstone
                     List<Campground> campgrounds = campDAL.GetAllCampgrounds(parkId);
                     foreach (Campground campground in campgrounds)
                     {
-                        printCampground(campground);
+                        PrintCampground(campground);
                         campgroundIds.Add(campground.CampgroundId);
                     }
                     Console.WriteLine();
@@ -155,7 +154,7 @@ namespace Capstone
                         {
 
                             chosenCampground = campDAL.GetCampgroundById(userChoiceCampground);
-                            printCampground(chosenCampground);
+                            PrintCampground(chosenCampground);
                             condition = false;
                         }
                     }
@@ -179,14 +178,13 @@ namespace Capstone
                 if (usersResponseToSubMenu == Command_SearchReservation)
                 {
 
-                    Console.WriteLine("Please enter the arrival date:(YYYY-MM-DD) ");
-                    string arrivalDate = Console.ReadLine();
+                    DateTime arrivalDate = 
+                        CLIHelper.GetDateFromUser("Please enter the arrival date:(YYYY-MM-DD) ", "Invalid date format");
+                    DateTime departureDate =
+                        CLIHelper.GetDateFromUser("Please enter the departure date: (YYYY-MM-DD) ", "Invalid date format");
+                    
 
-
-                    Console.WriteLine("Please enter the departure date: (YYYY-MM-DD)");
-                    string departureDate = Console.ReadLine();
-
-                    if (!isReserved(arrivalDate, departureDate) && isDateValid(arrivalDate, departureDate, chosenCampground))
+                    if (!IsReserved(arrivalDate, departureDate) && IsDateValid(arrivalDate, departureDate, chosenCampground))
                     {
                         GetAllAvailableSites(arrivalDate, departureDate);                     
                         BookReservation();
@@ -237,9 +235,8 @@ namespace Capstone
 
         }
 
-        private void GetAllParkNames()
+        private void DisplayAllParkNames()
         {
-
             List<Park> parks = parkDAL.GetAllParks();
 
             foreach (Park park in parks)
@@ -255,7 +252,7 @@ namespace Capstone
             Console.WriteLine("2 - Return to previous screen");
         }
 
-        public void GetAllAvailableSites(string arrivalDate, string departureDate)
+        public void GetAllAvailableSites(DateTime arrivalDate, DateTime departureDate)
         {
             List<Site> allNonReservedSites = siteDAL.GetSiteFromCampgroundId(userChoiceCampground, arrivalDate, departureDate);
             Console.WriteLine();
@@ -263,6 +260,8 @@ namespace Capstone
             Console.WriteLine();
             from_date = arrivalDate;
             to_date = departureDate;
+
+            allNonReservedSiteNumber.Clear();
 
             foreach (Site site in allNonReservedSites)
             {
@@ -272,7 +271,7 @@ namespace Capstone
             }
         }
 
-        public bool isReserved(string arrivalDate, string departureDate)
+        public bool IsReserved(DateTime arrivalDate, DateTime departureDate)
         {
             List<Site> sites = siteDAL.GetSiteFromCampgroundId(userChoiceCampground, arrivalDate, departureDate);
             if (sites.Count > 0)
@@ -286,14 +285,14 @@ namespace Capstone
 
         }
 
-        public void printCampground(Campground campground)
+        public void PrintCampground(Campground campground)
         {
             string userChoiceOpenMonth = CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(campground.OpenFrom);
             string userChoiceCloseMonth = CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(campground.OpenTo);
             Console.WriteLine(campground.CampgroundId.ToString().PadRight(5) + campground.Name.ToString().PadRight(40) + userChoiceOpenMonth.ToString().PadRight(25) + userChoiceCloseMonth.ToString().PadRight(25) + "$" + Math.Round(campground.DailyFee, 2));
         }
 
-        public List<int> getAllParkIds()
+        public List<int> GetAllParkIDs()
         {
             List<Park> park = parkDAL.GetAllParks();
             List<int> parkIds = new List<int>();
@@ -305,7 +304,7 @@ namespace Capstone
         }
 
 
-        public bool isDateValid(string arrivalDate, string departureDate, Campground campground)
+        public bool IsDateValid(DateTime arrivalDate, DateTime departureDate, Campground campground)
         {
             DateTime arrival;
             arrival = Convert.ToDateTime(arrivalDate);

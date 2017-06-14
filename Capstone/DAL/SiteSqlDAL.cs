@@ -17,7 +17,7 @@ namespace Capstone.DAL
             connectionString = parkConnectionString;
         }
 
-        public List<Site> GetSiteFromCampgroundId(int campground_Id, string from_date, string to_date)
+        public List<Site> GetSiteFromCampgroundId(int campground_Id, DateTime from_date, DateTime to_date)
         {
             List<Site> result = new List<Site>();
 

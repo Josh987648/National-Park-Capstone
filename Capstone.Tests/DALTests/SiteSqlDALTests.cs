@@ -39,7 +39,7 @@ namespace Capstone.Tests.DALTests
             SiteSqlDAL siteDal = new SiteSqlDAL(connectionString);
 
             //Act
-            List<Site> listOfSites = siteDal.GetSiteFromCampgroundId(1, "2017-06-06", "2017-06-09");
+            List<Site> listOfSites = siteDal.GetSiteFromCampgroundId(1, DateTime.Parse("2017-06-06"), DateTime.Parse("2017-06-09"));
 
             //Assert
             Assert.IsNotNull(true);
@@ -53,7 +53,7 @@ namespace Capstone.Tests.DALTests
             SiteSqlDAL siteDal = new SiteSqlDAL(connectionString);
 
             //Act
-            List<Site> listOfSites = siteDal.GetSiteFromCampgroundId(6, "2017-08-11", "2017-08-12");
+            List<Site> listOfSites = siteDal.GetSiteFromCampgroundId(6, DateTime.Parse("2017-08-11"), new DateTime(2017, 8, 12));
 
             //Assert
             Assert.IsNotNull(true);

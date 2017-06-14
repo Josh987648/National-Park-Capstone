@@ -16,7 +16,7 @@ namespace Capstone.DAL
             connectionString = parkConnectionString;
         }
        
-        public bool BookReservation(string name, int site_id, string from_date, string to_date)
+        public bool BookReservation(string name, int site_id, DateTime from_date, DateTime to_date)
         {
 
             try

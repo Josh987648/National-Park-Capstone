@@ -76,5 +76,19 @@ namespace Capstone.Tests.DALTests
             Assert.AreEqual(25.00M, campground.DailyFee);
         }
 
+        [TestMethod]
+        public void GetCampgroundById_DoesNotExist_ReturnNull()
+        {
+            //Arrange
+            CampgroundSqlDAL campgroundDal = new CampgroundSqlDAL(connectionString);
+
+            //Act
+            Campground campground = new Campground();
+            campground = campgroundDal.GetCampgroundById(-1);
+
+            //Assert
+            Assert.IsNull(campground);
+        }
+
     }
 }

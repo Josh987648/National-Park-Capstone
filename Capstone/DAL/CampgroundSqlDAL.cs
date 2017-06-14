@@ -60,7 +60,7 @@ namespace Capstone.DAL
 
         public Campground GetCampgroundById(int campgroundId)
         {
-            Campground campground = new Campground();
+            Campground campground = null;
 
             try
             {
@@ -72,8 +72,9 @@ namespace Capstone.DAL
                     cmd.Parameters.AddWithValue("@campgroundId", campgroundId);
 
                     SqlDataReader reader = cmd.ExecuteReader();
-                    while (reader.Read())
+                    if (reader.Read())
                     {
+                        campground = new Campground();
                         campground.CampgroundId = Convert.ToInt32(reader["campground_id"]);
                         campground.ParkId = Convert.ToInt32(reader["park_id"]);
                         campground.Name = Convert.ToString(reader["name"]);
